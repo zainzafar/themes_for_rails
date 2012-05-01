@@ -27,18 +27,25 @@ module ThemesForRails
     
     def find_themed_asset(asset_name, asset_theme, asset_type, &block)
       path = asset_path(asset_name, asset_theme, asset_type)
+      puts "*********** path = #{path}, #{asset_name}, #{asset_theme}, #{asset_type}"
       if File.exists?(path)
         yield path, mime_type_for(request)
       elsif File.extname(path).blank?
         asset_name = "#{asset_name}.#{extension_from(request.path_info)}"
         return find_themed_asset(asset_name, asset_theme, asset_type, &block) 
+      elsif !asset_theme.blank?
+        return find_themed_asset(asset_name, nil, asset_type, &block) 
       else
         render_not_found
       end
     end
 
     def asset_path(asset_name, asset_theme, asset_type)
-      File.join(theme_asset_path_for(asset_theme), asset_type, asset_name)
+      if asset_theme.blank?
+        File.join(asset_type, asset_name)
+      else
+        File.join(theme_asset_path_for(asset_theme), asset_type, asset_name)
+      end
     end
 
     def render_not_found
